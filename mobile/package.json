@@ -11,7 +11,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
-    "security:audit": "npm audit --audit-level=high --omit=dev",
+    "security:audit": "node scripts/security-audit.js",
     "typecheck": "tsc --noEmit",
     "test": "node scripts/run-jest.js",
     "test:coverage": "node scripts/run-jest.js --coverage"
