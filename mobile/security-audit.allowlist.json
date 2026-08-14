@@ -1,0 +1,22 @@
+{
+  "acceptedAdvisories": {
+    "1138808": {
+      "package": "image-size",
+      "url": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr",
+      "reason": "Transitive dependency used by Expo/Metro tooling. The non-breaking Expo SDK 54 fix is not available; npm proposes Expo 57 as a breaking change.",
+      "reviewBefore": "2026-10-01"
+    },
+    "1138809": {
+      "package": "image-size",
+      "url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq",
+      "reason": "Transitive dependency used by Expo/Metro tooling. The non-breaking Expo SDK 54 fix is not available; npm proposes Expo 57 as a breaking change.",
+      "reviewBefore": "2026-10-01"
+    },
+    "1130709": {
+      "package": "postcss",
+      "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp",
+      "reason": "Moderate transitive Expo/Metro advisory kept in the allowlist only to explain dependency chains reported by npm audit.",
+      "reviewBefore": "2026-10-01"
+    }
+  }
+}
