@@ -96,6 +96,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/scaleway "$SCALEWAY_SSH_USER@$SCALEWAY_SSH_HOST" "mkdir -p '$DEPLOY_PATH/infra/nginx'"
           scp -i ~/.ssh/scaleway docker-compose.prod.yml "$SCALEWAY_SSH_USER@$SCALEWAY_SSH_HOST:$DEPLOY_PATH/docker-compose.prod.yml"
+          scp -i ~/.ssh/scaleway docker-compose.monitoring.yml "$SCALEWAY_SSH_USER@$SCALEWAY_SSH_HOST:$DEPLOY_PATH/docker-compose.monitoring.yml"
           scp -i ~/.ssh/scaleway infra/nginx/nginx.prod.conf "$SCALEWAY_SSH_USER@$SCALEWAY_SSH_HOST:$DEPLOY_PATH/infra/nginx/nginx.prod.conf"
         env:
           SCALEWAY_SSH_HOST: ${{ secrets.SCALEWAY_SSH_HOST }}
@@ -127,7 +128,9 @@ jobs:
           docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --no-build
           docker compose --env-file .env.prod -f docker-compose.prod.yml exec -T backend python manage.py migrate
           docker compose --env-file .env.prod -f docker-compose.prod.yml exec -T backend python manage.py seed_demo
+          docker compose --env-file .env.prod -f docker-compose.monitoring.yml up -d
           docker compose --env-file .env.prod -f docker-compose.prod.yml ps
+          docker compose --env-file .env.prod -f docker-compose.monitoring.yml ps
           EOF
         env:
           SCW_REGISTRY_TOKEN: ${{ secrets.SCW_REGISTRY_TOKEN }}

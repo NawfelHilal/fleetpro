@@ -444,6 +444,33 @@ Invoke-WebRequest http://51.158.102.141/api/v1/health/
 
 Remplacer l’IP par l’adresse réelle du serveur ou par le domaine configuré.
 
+## Supervision avec Uptime Kuma
+
+FleetPro intègre une supervision légère avec Uptime Kuma pour le Bloc 4. Cette supervision contrôle la disponibilité des endpoints publics et permet de déclencher une alerte en cas d’indisponibilité.
+
+Démarrer Uptime Kuma sur Scaleway :
+
+```bash
+cd /opt/fleetpro
+docker compose --env-file .env.prod -f docker-compose.monitoring.yml up -d
+```
+
+Accéder à l’interface :
+
+```txt
+http://51.158.102.141:3002
+```
+
+Moniteurs conseillés :
+
+- `FleetPro Gateway` : `http://51.158.102.141/health`
+- `FleetPro API` : `http://51.158.102.141/api/v1/health/`
+- `FleetPro GPS` : `http://51.158.102.141/socket.io/?EIO=4&transport=polling`
+
+Prometheus et Grafana sont prévus comme évolution lorsque le besoin de métriques détaillées augmentera.
+
+Documentation complète : `docs/MONITORING.md`.
+
 ## Variables d’environnement principales
 
 Les exemples ont été volontairement simplifiés :
@@ -499,6 +526,7 @@ Les fichiers `.env`, `.env.prod` et `mobile/.env` ne doivent pas être commités
 - Accessibilité : `docs/ACCESSIBILITY.md`
 - Qualité de code : `docs/CODE_QUALITY.md`
 - SonarQube : `docs/SONARQUBE.md`
+- Supervision : `docs/MONITORING.md`
 - Dépannage : `docs/TROUBLESHOOTING.md`
 - Déploiement Scaleway : `DEPLOY_SCALEWAY.md`
 
