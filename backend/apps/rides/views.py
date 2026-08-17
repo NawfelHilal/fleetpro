@@ -21,6 +21,7 @@ class RideViewSet(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
+    queryset = Ride.objects.none()
     serializer_class = RideSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -174,6 +175,7 @@ class DriverProfileViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
+    queryset = DriverProfile.objects.none()
     serializer_class = DriverProfileSerializer
     permission_classes = [IsDriverOrStaff]
 
@@ -193,6 +195,7 @@ class VehicleViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
+    queryset = Vehicle.objects.none()
     serializer_class = VehicleSerializer
     permission_classes = [IsDriverOrStaff]
 

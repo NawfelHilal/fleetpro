@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "corsheaders",
     "rest_framework",
+    "drf_spectacular",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "apps.accounts",
@@ -123,6 +124,37 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",
     ),
     "DEFAULT_THROTTLE_RATES": {"anon": "30/min", "user": "300/min"},
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "FleetPro API",
+    "DESCRIPTION": (
+        "API REST FleetPro pour l'authentification, les comptes, les chauffeurs, "
+        "les véhicules, les courses, les paiements et les notifications mobiles."
+    ),
+    "VERSION": "0.1.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SECURITY": [{"BearerAuth": []}],
+    "COMPONENTS": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+            }
+        }
+    },
+    "TAGS": [
+        {"name": "auth", "description": "Authentification JWT"},
+        {"name": "accounts", "description": "Gestion des comptes utilisateurs"},
+        {"name": "driver-profiles", "description": "Informations professionnelles chauffeur"},
+        {"name": "vehicles", "description": "Véhicules et éligibilité PMR"},
+        {"name": "rides", "description": "Création, matching et suivi des courses"},
+        {"name": "payments", "description": "Paiement Stripe ou simulation démo"},
+        {"name": "notifications", "description": "Enregistrement des appareils mobiles"},
+    ],
 }
 
 SIMPLE_JWT = {

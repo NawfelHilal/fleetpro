@@ -21,7 +21,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
-    def get__links(self, obj):
+    def get__links(self, obj) -> dict[str, dict[str, str]]:
         request = self.context.get("request")
 
         def uri(path: str) -> str:

@@ -189,14 +189,39 @@ jobs:
           import base64
           import json
           import os
+          import pathlib
           import sys
           import urllib.request
 
           host = os.environ["SONAR_HOST_URL"].rstrip("/")
           token = os.environ["SONAR_TOKEN"]
-          url = f"{host}/api/qualitygates/project_status?projectKey=fleetpro"
-          request = urllib.request.Request(url)
           basic = base64.b64encode(f"{token}:".encode()).decode()
+
+          report_task = pathlib.Path(".scannerwork/report-task.txt")
+          if report_task.exists():
+              values = {}
+              for line in report_task.read_text(encoding="utf-8").splitlines():
+                  if "=" in line:
+                      key, value = line.split("=", 1)
+                      values[key] = value
+
+              ce_task_id = values.get("ceTaskId")
+              if ce_task_id:
+                  request = urllib.request.Request(f"{host}/api/ce/task?id={ce_task_id}")
+                  request.add_header("Authorization", f"Basic {basic}")
+                  with urllib.request.urlopen(request, timeout=30) as response:
+                      ce_payload = json.load(response)
+
+                  task = ce_payload.get("task", {})
+                  print(f"CE Task: {task.get('status')}")
+                  if task.get("errorMessage"):
+                      print(f"CE error: {task.get('errorMessage')}")
+                  if task.get("errorStacktrace"):
+                      print(task.get("errorStacktrace"))
+                  if task.get("status") == "FAILED":
+                      sys.exit(1)
+
+          request = urllib.request.Request(f"{host}/api/qualitygates/project_status?projectKey=fleetpro")
           request.add_header("Authorization", f"Basic {basic}")
 
           with urllib.request.urlopen(request, timeout=30) as response:

@@ -13,6 +13,7 @@ from .services import SimulatedPaymentGateway, StripePaymentGateway
 
 
 class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Payment.objects.none()
     serializer_class = PaymentSerializer
     permission_classes = [permissions.IsAuthenticated]
 

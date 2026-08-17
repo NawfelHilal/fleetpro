@@ -5,6 +5,7 @@ from .serializers import DeviceTokenSerializer
 
 
 class DeviceTokenViewSet(viewsets.ModelViewSet):
+    queryset = DeviceToken.objects.none()
     serializer_class = DeviceTokenSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -13,4 +14,3 @@ class DeviceTokenViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-

@@ -174,6 +174,12 @@ Invoke-WebRequest http://51.158.102.141/health
 Invoke-WebRequest http://51.158.102.141/api/v1/health/
 ```
 
+Documentation API interactive :
+
+- Swagger UI : `http://51.158.102.141/api/docs/`
+- Redoc : `http://51.158.102.141/api/redoc/`
+- Schéma OpenAPI : `http://51.158.102.141/api/schema/`
+
 Après chaque modification de `mobile/.env`, relancer Expo avec `--clear` pour éviter que Metro garde d’anciennes variables.
 
 Comptes de démonstration disponibles sur Scaleway :

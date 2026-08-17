@@ -81,13 +81,13 @@ class RideSerializer(serializers.ModelSerializer):
             "canceled_at",
         ]
 
-    def get_payment_status(self, obj):
+    def get_payment_status(self, obj) -> str | None:
         try:
             return obj.payment.status
         except ObjectDoesNotExist:
             return None
 
-    def get__links(self, obj):
+    def get__links(self, obj) -> dict[str, dict[str, str]]:
         request = self.context.get("request")
 
         def uri(path: str) -> str:
@@ -161,7 +161,7 @@ class DriverProfileSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "user", "verified_at", "rating", "is_fleether_eligible", "is_fleet_pmr_eligible", "is_professional_profile_complete"]
 
-    def get_is_fleet_pmr_eligible(self, obj):
+    def get_is_fleet_pmr_eligible(self, obj) -> bool:
         return obj.user.vehicles.filter(is_pmr_adapted=True).exists()
 
 
