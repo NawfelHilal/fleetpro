@@ -1,4 +1,4 @@
-import { formatEuro, statusLabel } from './format';
+import { driverPositionFreshnessLabel, formatEuro, statusLabel } from './format';
 
 describe('format helpers', () => {
   it('formats euro cents with two decimals', () => {
@@ -14,5 +14,22 @@ describe('format helpers', () => {
     expect(statusLabel('COMPLETED')).toBe('Terminee');
     expect(statusLabel('CANCELED')).toBe('Annulee');
     expect(statusLabel('CUSTOM')).toBe('CUSTOM');
+  });
+
+  it('explains driver GPS freshness to passengers', () => {
+    const now = Date.parse('2026-08-20T10:00:50.000Z');
+
+    expect(driverPositionFreshnessLabel(undefined, now)).toEqual({
+      label: 'Position GPS chauffeur en attente.',
+      stale: false,
+    });
+    expect(driverPositionFreshnessLabel('2026-08-20T10:00:20.000Z', now)).toEqual({
+      label: 'Position GPS actualisee il y a 30 s.',
+      stale: false,
+    });
+    expect(driverPositionFreshnessLabel('2026-08-20T10:00:00.000Z', now)).toEqual({
+      label: 'Derniere position GPS recue il y a 50 s.',
+      stale: true,
+    });
   });
 });

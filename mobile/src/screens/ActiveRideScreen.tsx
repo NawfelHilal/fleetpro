@@ -11,18 +11,22 @@ import { RootStackParamList } from '../navigation/RootNavigator';
 import { useAuthStore } from '../store/auth';
 import { useRideStore } from '../store/rides';
 import { colors } from '../theme/colors';
-import { formatEuro, statusLabel } from '../theme/format';
+import { driverPositionFreshnessLabel, formatEuro, statusLabel } from '../theme/format';
 
 type Props = Readonly<NativeStackScreenProps<RootStackParamList, 'ActiveRide'>>;
 
 export function ActiveRideScreen({ navigation, route }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [driverCoordinate, setDriverCoordinate] = useState<MapCoordinate>();
+  const [gpsConnected, setGpsConnected] = useState(false);
+  const [lastDriverPositionAt, setLastDriverPositionAt] = useState<string>();
+  const [positionClock, setPositionClock] = useState(Date.now());
   const ride = useRideStore((state) => state.rides.find((item) => item.id === route.params.rideId));
   const plan = useRideStore((state) => state.currentPlan);
   const role = useAuthStore((state) => state.role);
   const { acceptRide, startRide, completeRide, cancelRide, refreshRide, simulateRide } = useRideStore();
   const payment = paymentStatusDetail(ride?.payment_status, ride?.status);
+  const gpsFreshness = driverPositionFreshnessLabel(lastDriverPositionAt, positionClock);
 
   useEffect(() => {
     refreshRide(route.params.rideId).catch(() => undefined);
@@ -35,22 +39,44 @@ export function ActiveRideScreen({ navigation, route }: Props) {
   useEffect(() => {
     const socket = getGpsSocket();
     if (!socket) {
+      setGpsConnected(false);
       return undefined;
     }
     const joinRide = () => socket.emit('ride:join', { rideId: route.params.rideId });
+    const markConnected = () => {
+      setGpsConnected(true);
+      joinRide();
+    };
+    const markDisconnected = () => setGpsConnected(false);
     const updatePosition = (position: DriverPosition) => {
       if (position.rideId === route.params.rideId) {
         setDriverCoordinate({ latitude: position.latitude, longitude: position.longitude });
+        setLastDriverPositionAt(position.recordedAt || new Date().toISOString());
+        setPositionClock(Date.now());
       }
     };
-    joinRide();
-    socket.on('connect', joinRide);
+    setGpsConnected(socket.connected);
+    if (socket.connected) {
+      joinRide();
+    }
+    socket.on('connect', markConnected);
+    socket.on('disconnect', markDisconnected);
     socket.on('driver:position:updated', updatePosition);
     return () => {
-      socket.off('connect', joinRide);
+      socket.off('connect', markConnected);
+      socket.off('disconnect', markDisconnected);
       socket.off('driver:position:updated', updatePosition);
     };
   }, [route.params.rideId]);
+
+  useEffect(() => {
+    if (!lastDriverPositionAt) {
+      return undefined;
+    }
+
+    const timer = setInterval(() => setPositionClock(Date.now()), 10000);
+    return () => clearInterval(timer);
+  }, [lastDriverPositionAt]);
 
   if (!ride) {
     return (
@@ -77,6 +103,10 @@ export function ActiveRideScreen({ navigation, route }: Props) {
           </View>
           <Pressable accessibilityRole="button" accessibilityLabel="Appeler le chauffeur" accessibilityHint="Bouton de contact téléphonique du chauffeur" style={styles.phoneButton}><Feather name="phone" size={20} color={colors.ink} /></Pressable>
         </View>
+
+        {ride.status === 'ACCEPTED' || ride.status === 'IN_PROGRESS' ? (
+          <GpsFreshnessNotice connected={gpsConnected} freshness={gpsFreshness} />
+        ) : null}
 
         {ride.status === 'REQUESTED' ? <DriverSearchSimulation /> : null}
 
@@ -137,6 +167,24 @@ export function ActiveRideScreen({ navigation, route }: Props) {
         )}
       </View>
     </SafeAreaView>
+  );
+}
+
+function GpsFreshnessNotice({
+  connected,
+  freshness,
+}: {
+  connected: boolean;
+  freshness: { label: string; stale: boolean };
+}) {
+  const warning = !connected || freshness.stale;
+  const label = connected ? freshness.label : 'Connexion GPS temps reel interrompue.';
+
+  return (
+    <View style={[styles.gpsNotice, warning && styles.gpsNoticeWarning]}>
+      <Feather name={warning ? 'alert-triangle' : 'radio'} size={17} color={colors.ink} />
+      <Text style={styles.gpsNoticeText}>{label}</Text>
+    </View>
   );
 }
 
@@ -333,6 +381,9 @@ const styles = StyleSheet.create({
   title: { color: colors.ink, fontSize: 20, fontWeight: '900' },
   muted: { color: colors.muted, marginTop: 3 },
   phoneButton: { width: 44, height: 44, borderRadius: 8, backgroundColor: colors.softAccent, alignItems: 'center', justifyContent: 'center' },
+  gpsNotice: { backgroundColor: colors.softAccent, borderRadius: 8, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  gpsNoticeWarning: { borderWidth: 1, borderColor: colors.warning },
+  gpsNoticeText: { color: colors.ink, fontWeight: '800', flex: 1 },
   timeline: { backgroundColor: colors.background, borderRadius: 8, padding: 14 },
   timelineRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   timelineDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.ink, marginHorizontal: 3 },
