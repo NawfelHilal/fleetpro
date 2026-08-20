@@ -31,5 +31,26 @@ describe('format helpers', () => {
       label: 'Derniere position GPS recue il y a 50 s.',
       stale: true,
     });
+    expect(driverPositionFreshnessLabel('date-invalide', now)).toEqual({
+      label: 'Position GPS chauffeur non datée.',
+      stale: true,
+    });
+    expect(driverPositionFreshnessLabel('2026-08-20T10:00:05.000Z', now)).toEqual({
+      label: 'Position GPS actualisee il y a 45 s.',
+      stale: false,
+    });
+    expect(driverPositionFreshnessLabel('2026-08-20T10:01:00.000Z', now)).toEqual({
+      label: 'Position GPS actualisee il y a 0 s.',
+      stale: false,
+    });
+  });
+
+  it('uses the current clock when no reference date is provided', () => {
+    jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-08-20T10:00:10.000Z'));
+
+    expect(driverPositionFreshnessLabel('2026-08-20T10:00:00.000Z')).toEqual({
+      label: 'Position GPS actualisee il y a 10 s.',
+      stale: false,
+    });
   });
 });
