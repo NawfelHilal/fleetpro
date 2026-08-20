@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppButton } from '../components/AppButton';
 import { FieldPill } from '../components/FieldPill';
 import { MapCanvas } from '../components/MapCanvas';
-import { searchDestinationSuggestions, withRouteEstimate } from '../api/geocoding';
+import { roundCoordinate, searchDestinationSuggestions, withRouteEstimate } from '../api/geocoding';
 import { demoPickup } from '../data/demoRoute';
 import { PlaceSuggestion, savedPlaces, rideOptions } from '../data/places';
 import { RootStackParamList } from '../navigation/RootNavigator';
@@ -42,7 +42,7 @@ export function RideComposerScreen({ navigation }: Props) {
       .then(({ status }) => status === 'granted' ? Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High }) : undefined)
       .then((location) => {
         if (location) {
-          setPickup({ latitude: location.coords.latitude, longitude: location.coords.longitude });
+          setPickup({ latitude: roundCoordinate(location.coords.latitude), longitude: roundCoordinate(location.coords.longitude) });
         }
       })
       .catch(() => undefined);
@@ -79,11 +79,11 @@ export function RideComposerScreen({ navigation }: Props) {
     eta: selectedService.eta,
     service_type: selectedService.id as 'STANDARD' | 'FLEETHER' | 'FLEET_PMR' | 'FLEET_LUXE',
     pickup_label: process.env.EXPO_PUBLIC_ENABLE_DEMO_SIMULATION === 'true' ? demoPickup.label : 'Position actuelle',
-    pickup_latitude: pickup.latitude,
-    pickup_longitude: pickup.longitude,
+    pickup_latitude: roundCoordinate(pickup.latitude),
+    pickup_longitude: roundCoordinate(pickup.longitude),
     dropoff_label: selectedPlace.label,
-    dropoff_latitude: selectedPlace.latitude,
-    dropoff_longitude: selectedPlace.longitude,
+    dropoff_latitude: roundCoordinate(selectedPlace.latitude),
+    dropoff_longitude: roundCoordinate(selectedPlace.longitude),
     distance_km: selectedPlace.distanceKm,
     duration_minutes: selectedPlace.durationMinutes,
     estimatedFareCents: fare,

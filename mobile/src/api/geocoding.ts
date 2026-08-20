@@ -39,9 +39,15 @@ export function withRouteEstimate(place: PlaceSuggestion, pickup: Coordinate): P
   const distanceKm = haversineDistanceKm(pickup, place);
   return {
     ...place,
+    latitude: roundCoordinate(place.latitude),
+    longitude: roundCoordinate(place.longitude),
     distanceKm: distanceKm.toFixed(2),
     durationMinutes: estimateDurationMinutes(distanceKm),
   };
+}
+
+export function roundCoordinate(value: number): number {
+  return Number(value.toFixed(6));
 }
 
 function searchRemoteDestinations(query: string, pickup: Coordinate): Promise<PlaceSuggestion[]> {
@@ -77,8 +83,8 @@ function toPlaceSuggestion(result: NominatimResult, pickup: Coordinate): PlaceSu
     id: `geo-${result.place_id || result.osm_id || `${latitude}-${longitude}`}`,
     label: result.name || label || 'Destination',
     address: addressParts.slice(0, 3).join(', ') || result.display_name,
-    latitude,
-    longitude,
+    latitude: roundCoordinate(latitude),
+    longitude: roundCoordinate(longitude),
     distanceKm: distanceKm.toFixed(2),
     durationMinutes: estimateDurationMinutes(distanceKm),
   };

@@ -1,4 +1,4 @@
-import { searchDestinationSuggestions, searchLocalDestinations, withRouteEstimate } from './geocoding';
+import { roundCoordinate, searchDestinationSuggestions, searchLocalDestinations, withRouteEstimate } from './geocoding';
 import { savedPlaces } from '../data/places';
 import { demoPickup } from '../data/demoRoute';
 
@@ -33,8 +33,8 @@ describe('destination geocoding', () => {
         {
           place_id: 123,
           display_name: 'Promenade du Paillon, Nice, Alpes-Maritimes, France',
-          lat: '43.700800',
-          lon: '7.275500',
+          lat: '43.700800123',
+          lon: '7.275500987',
           name: 'Promenade du Paillon',
         },
       ],
@@ -48,6 +48,8 @@ describe('destination geocoding', () => {
         id: 'geo-123',
         label: 'Promenade du Paillon',
         address: 'Nice, Alpes-Maritimes, France',
+        latitude: 43.7008,
+        longitude: 7.275501,
       }),
     ]);
     expect(Number(suggestions[0].distanceKm)).toBeGreaterThan(0);
@@ -126,5 +128,10 @@ describe('destination geocoding', () => {
 
     expect(Number(estimated.distanceKm)).toBeGreaterThan(0);
     expect(estimated.durationMinutes).toBeGreaterThan(0);
+  });
+
+  it('rounds coordinates to six decimals for backend decimal fields', () => {
+    expect(roundCoordinate(43.123456789)).toBe(43.123457);
+    expect(roundCoordinate(7.100000111)).toBe(7.1);
   });
 });
