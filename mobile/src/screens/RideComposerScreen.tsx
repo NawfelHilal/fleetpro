@@ -8,8 +8,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppButton } from '../components/AppButton';
 import { FieldPill } from '../components/FieldPill';
 import { MapCanvas } from '../components/MapCanvas';
+import { searchDestinationSuggestions, withRouteEstimate } from '../api/geocoding';
 import { demoPickup } from '../data/demoRoute';
-import { savedPlaces, rideOptions } from '../data/places';
+import { PlaceSuggestion, savedPlaces, rideOptions } from '../data/places';
 import { RootStackParamList } from '../navigation/RootNavigator';
 import { useRideStore } from '../store/rides';
 import { colors } from '../theme/colors';
@@ -18,14 +19,17 @@ import { formatEuro } from '../theme/format';
 type Props = Readonly<NativeStackScreenProps<RootStackParamList, 'RideComposer'>>;
 
 export function RideComposerScreen({ navigation }: Props) {
-  const [selectedPlaceId, setSelectedPlaceId] = useState(savedPlaces[0].id);
+  const [destinationQuery, setDestinationQuery] = useState(savedPlaces[0].label);
+  const [destinationSuggestions, setDestinationSuggestions] = useState<PlaceSuggestion[]>(savedPlaces);
+  const [destinationLoading, setDestinationLoading] = useState(false);
+  const [selectedDestination, setSelectedDestination] = useState<PlaceSuggestion>(savedPlaces[0]);
   const [selectedServiceId, setSelectedServiceId] = useState(rideOptions[0].id);
   const [note, setNote] = useState('');
   const [pickup, setPickup] = useState({ latitude: demoPickup.latitude, longitude: demoPickup.longitude });
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const { setCurrentPlan, requestRide, createPaymentIntent, simulatePaymentIntent, cancelRide } = useRideStore();
 
-  const selectedPlace = savedPlaces.find((place) => place.id === selectedPlaceId) || savedPlaces[0];
+  const selectedPlace = useMemo(() => withRouteEstimate(selectedDestination, pickup), [pickup, selectedDestination]);
   const selectedService = rideOptions.find((option) => option.id === selectedServiceId) || rideOptions[0];
   const baseFare = 350 + Number(selectedPlace.distanceKm) * 145 + selectedPlace.durationMinutes * 35;
   const fare = Math.round(Math.max(baseFare, 850) * selectedService.multiplier);
@@ -43,6 +47,30 @@ export function RideComposerScreen({ navigation }: Props) {
       })
       .catch(() => undefined);
   }, []);
+
+  useEffect(() => {
+    let canceled = false;
+    setDestinationLoading(true);
+
+    const timer = setTimeout(() => {
+      searchDestinationSuggestions(destinationQuery, pickup)
+        .then((suggestions) => {
+          if (!canceled) {
+            setDestinationSuggestions(suggestions);
+          }
+        })
+        .finally(() => {
+          if (!canceled) {
+            setDestinationLoading(false);
+          }
+        });
+    }, 350);
+
+    return () => {
+      canceled = true;
+      clearTimeout(timer);
+    };
+  }, [destinationQuery, pickup.latitude, pickup.longitude]);
 
   const plan = useMemo(() => ({
     dropoffId: selectedPlace.id,
@@ -133,21 +161,35 @@ export function RideComposerScreen({ navigation }: Props) {
           />
         </View>
         <Text style={styles.sectionTitle}>Destination</Text>
-        {savedPlaces.map((place) => (
+        <TextInput
+          value={destinationQuery}
+          onChangeText={setDestinationQuery}
+          placeholder="Rechercher une adresse ou un lieu"
+          placeholderTextColor={colors.placeholder}
+          style={styles.input}
+          accessibilityLabel="Destination"
+          accessibilityHint="Saisissez une adresse ou un lieu pour afficher les suggestions"
+        />
+        {destinationLoading ? <Text style={styles.muted}>Recherche de destinations...</Text> : null}
+        {destinationSuggestions.length === 0 && !destinationLoading ? <Text style={styles.muted}>Aucune adresse trouvée. Essayez un lieu plus précis à Nice.</Text> : null}
+        {destinationSuggestions.map((place) => (
           <Pressable
             key={place.id}
-            onPress={() => setSelectedPlaceId(place.id)}
+            onPress={() => {
+              setSelectedDestination(place);
+              setDestinationQuery(place.label);
+            }}
             accessibilityRole="button"
             accessibilityLabel={`Destination ${place.label}`}
             accessibilityHint={`${place.address}, trajet estimé à ${place.durationMinutes} minutes`}
-            accessibilityState={{ selected: selectedPlaceId === place.id }}
-            style={[styles.optionRow, selectedPlaceId === place.id && styles.optionSelected]}
+            accessibilityState={{ selected: selectedDestination.id === place.id }}
+            style={[styles.optionRow, selectedDestination.id === place.id && styles.optionSelected]}
           >
             <View style={styles.optionText}>
               <Text style={styles.optionTitle}>{place.label}</Text>
-              <Text style={styles.optionMeta}>{place.address} - {place.durationMinutes} min</Text>
+              <Text style={styles.optionMeta}>{place.address} - {place.distanceKm} km - {place.durationMinutes} min</Text>
             </View>
-            {selectedPlaceId === place.id ? <Feather name="check" size={20} color={colors.ink} /> : null}
+            {selectedDestination.id === place.id ? <Feather name="check" size={20} color={colors.ink} /> : null}
           </Pressable>
         ))}
         <Text style={styles.sectionTitle}>Choisir une course</Text>
@@ -205,6 +247,7 @@ const styles = StyleSheet.create({
   optionTitle: { color: colors.ink, fontWeight: '900', fontSize: 16 },
   optionMeta: { color: colors.muted, marginTop: 3 },
   optionDescription: { color: colors.muted, marginTop: 4, fontSize: 12, lineHeight: 17 },
+  muted: { color: colors.muted, fontWeight: '700' },
   carIcon: { width: 46, height: 34, borderRadius: 8, backgroundColor: colors.softAccent, alignItems: 'center', justifyContent: 'center' },
   carEmoji: { color: colors.ink, fontWeight: '900', fontSize: 12 },
   fare: { color: colors.ink, fontWeight: '900' },
