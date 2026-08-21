@@ -35,9 +35,6 @@ export function RideComposerScreen({ navigation }: Props) {
   const fare = Math.round(Math.max(baseFare, 850) * selectedService.multiplier);
 
   useEffect(() => {
-    if (process.env.EXPO_PUBLIC_ENABLE_DEMO_SIMULATION === 'true') {
-      return;
-    }
     Location.requestForegroundPermissionsAsync()
       .then(({ status }) => status === 'granted' ? Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High }) : undefined)
       .then((location) => {
@@ -78,7 +75,7 @@ export function RideComposerScreen({ navigation }: Props) {
     serviceName: selectedService.name,
     eta: selectedService.eta,
     service_type: selectedService.id as 'STANDARD' | 'FLEETHER' | 'FLEET_PMR' | 'FLEET_LUXE',
-    pickup_label: process.env.EXPO_PUBLIC_ENABLE_DEMO_SIMULATION === 'true' ? demoPickup.label : 'Position actuelle',
+    pickup_label: 'Position actuelle',
     pickup_latitude: roundCoordinate(pickup.latitude),
     pickup_longitude: roundCoordinate(pickup.longitude),
     dropoff_label: selectedPlace.label,
@@ -171,7 +168,7 @@ export function RideComposerScreen({ navigation }: Props) {
           accessibilityHint="Saisissez une adresse ou un lieu pour afficher les suggestions"
         />
         {destinationLoading ? <Text style={styles.muted}>Recherche de destinations...</Text> : null}
-        {destinationSuggestions.length === 0 && !destinationLoading ? <Text style={styles.muted}>Aucune adresse trouvée. Essayez un lieu plus précis à Nice.</Text> : null}
+        {destinationSuggestions.length === 0 && !destinationLoading ? <Text style={styles.muted}>Aucune adresse trouvée. Essayez une adresse plus précise en France.</Text> : null}
         {destinationSuggestions.map((place) => (
           <Pressable
             key={place.id}
