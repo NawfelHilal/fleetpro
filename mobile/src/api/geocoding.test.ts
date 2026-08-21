@@ -43,6 +43,8 @@ describe('destination geocoding', () => {
     const suggestions = await searchDestinationSuggestions('promenade du paillon', pickup);
 
     expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('promenade'), expect.any(Object));
+    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('countrycodes=fr'), expect.any(Object));
+    expect(global.fetch).not.toHaveBeenCalledWith(expect.stringContaining('viewbox='), expect.any(Object));
     expect(suggestions).toEqual([
       expect.objectContaining({
         id: 'geo-123',

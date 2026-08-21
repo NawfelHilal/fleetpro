@@ -23,14 +23,14 @@ Le numéro de version fournit une référence lisible pour chaque composant, tan
 
 | Version | SHA court | Date du commit | État | Périmètre |
 | --- | --- | --- | --- | --- |
-| `mobile-v1.0.0` | `ab3d55e` | 2026-07-19 | Tag existant | Application mobile et pipeline EAS |
+| `mobile-v1.0.0` | `80864e1` | 2026-08-20 | Version formalisée Bloc 4 | Application mobile, parcours passager/chauffeur, EAS, tests, accessibilité et autocomplétion |
 | `backend-v1.0.0` | `c127d07` | 2026-08-17 | Version formalisée Bloc 4 | API Django REST, Swagger, tests et CI |
-| `gps-v1.0.0` | `c127d07` | 2026-08-17 | Version formalisée Bloc 4 | Service GPS, Socket.IO, Redis, tests et sécurité |
+| `gps-v1.0.0` | `71f61e6` | 2026-08-14 | Version formalisée Bloc 4 | Service GPS, Socket.IO, Redis, tests, sécurité et stabilisation CI Node |
 | `infra-v1.0.0` | `c127d07` | 2026-08-17 | Version formalisée Bloc 4 | Docker, Scaleway, Nginx, CI/CD, SonarQube et Uptime Kuma |
 
-> Le tag `mobile-v1.0.0` existait avant la formalisation de ce changelog et n’a pas été déplacé afin de préserver l’historique Git.
+> Le tag `mobile-v1.0.0` existait initialement sur le commit `ab3d55e`. Il a été repositionné explicitement sur `80864e1` afin de pointer vers la dernière version mobile stabilisée.
 >
-> Les versions `backend-v1.0.0`, `gps-v1.0.0` et `infra-v1.0.0` correspondent à l’état stable du dépôt retenu lors de la mise en place du versionnement par composant.
+> Les versions `backend-v1.0.0`, `gps-v1.0.0` et `infra-v1.0.0` correspondent chacune au commit significatif retenu pour formaliser l’état stable du composant concerné.
 >
 > Une version ne doit être indiquée comme « déployée » dans ce fichier que lorsqu’une preuve de son déploiement est disponible.
 
@@ -139,6 +139,8 @@ Le correctif relatif à `socket.io-parser` est notamment associé au commit :
 
 `1fdb366 — fix vulnerability job security`
 
+La version GPS `gps-v1.0.0` est rattachée au commit `71f61e6`, qui stabilise la version Node utilisée par la CI après les correctifs précédents.
+
 Le correctif relatif à `--no-webstorage` est notamment associé au commit :
 
 `356dc04 — fix job erroro`
@@ -222,9 +224,7 @@ Cette utilisation du SHA permet d’identifier précisément la révision du cod
 
 ---
 
-## [mobile-v1.0.0] - 2026-07-19
-
-Cette version correspond au tag historique `mobile-v1.0.0`, positionné sur le commit `ab3d55e`.
+## [mobile-v1.0.0]
 
 ### Ajouté
 
@@ -235,30 +235,17 @@ Cette version correspond au tag historique `mobile-v1.0.0`, positionné sur le c
 - Authentification et inscription.
 - Mode de démonstration.
 - Gestion des principales interactions liées aux courses.
-
-### Preuves principales
-
-- `mobile/package.json`
-- `mobile/app.json`
-- `mobile/eas.json`
-- `.github/workflows/eas-build.yml`
-
----
-
-# [Unreleased] - Mobile
-
-Cette section regroupe les modifications mobiles réalisées après le tag `mobile-v1.0.0` et qui ne doivent donc pas être présentées comme appartenant rétroactivement à cette version.
-
-Elles seront intégrées dans une prochaine version mobile lors de la création d’un nouveau tag.
-
-### Ajouté
-
+- Choix d’une destination libre avec autocomplétion d’adresse autour de Nice.
+- Fallback sur les destinations de démonstration lorsque le géocodage distant est indisponible.
+- Recalcul de distance, durée estimée et prix à partir de la destination sélectionnée.
+- Indicateur de fraîcheur de la position GPS chauffeur dans le suivi de course.
 - Tests ciblés sur :
   - le client API ;
   - le store d’authentification ;
   - le store de courses ;
   - les données de lieux ;
-  - certains utilitaires de formatage.
+  - l’autocomplétion de destination ;
+  - les utilitaires de formatage.
 - Audit de sécurité mobile spécifique.
 - Fichier d’allowlist permettant de documenter certaines vulnérabilités transitives.
 
@@ -267,6 +254,7 @@ Elles seront intégrées dans une prochaine version mobile lors de la création 
 - Amélioration de plusieurs éléments d’accessibilité.
 - Amélioration de la visibilité des placeholders dans les formulaires.
 - Évolution de la configuration du mode de démonstration.
+- Arrondi des coordonnées GPS à six décimales avant envoi au backend afin de respecter les champs `DecimalField`.
 
 ### Sécurité
 
@@ -279,13 +267,19 @@ Elles seront intégrées dans une prochaine version mobile lors de la création 
 
 - `mobile/package.json`
 - `mobile/package-lock.json`
+- `mobile/app.json`
+- `mobile/eas.json`
 - `mobile/src/api/client.ts`
+- `mobile/src/api/geocoding.ts`
 - `mobile/src/store/auth.ts`
 - `mobile/src/store/rides.ts`
+- `mobile/src/screens/RideComposerScreen.tsx`
+- `mobile/src/screens/ActiveRideScreen.tsx`
 - `mobile/src/**/*.test.ts`
 - `mobile/scripts/security-audit.js`
 - `mobile/security-audit.allowlist.json`
 - `.github/workflows/ci.yml`
+- `.github/workflows/eas-build.yml`
 
 ---
 
@@ -295,6 +289,11 @@ Le tableau suivant ne constitue pas une liste exhaustive de tous les commits du 
 
 | Date | SHA court | Message | Type | Composants |
 | --- | --- | --- | --- | --- |
+| 2026-08-20 | `80864e1` | arrondie a 6 decimal | Correction fonctionnelle | Mobile |
+| 2026-08-20 | `56e6bf5` | calcul destination | Fonctionnel | Mobile |
+| 2026-08-20 | `27dd653` | autocompletion destination | Fonctionnel / UX | Mobile |
+| 2026-08-20 | `98b3fa5` | coverag to 80% | Tests / Couverture | Mobile |
+| 2026-08-20 | `e0c5c21` | date derniere position chauffeur | Recette / Exploitation | Mobile |
 | 2026-08-17 | `c127d07` | ajout Swagger | Documentation API | Backend |
 | 2026-08-14 | `71f61e6` | version node ci | CI | GPS, Mobile, Infra |
 | 2026-08-14 | `f6685f8` | allow | Sécurité | Mobile |

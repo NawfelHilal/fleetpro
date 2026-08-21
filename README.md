@@ -27,7 +27,7 @@ Docker Compose local reste disponible pour le développement complet ou pour tra
 
 - Création de compte passager.
 - Connexion avec JWT.
-- Choix d’une destination avec autocomplétion d’adresse autour de Nice, avec destinations de démonstration en fallback.
+- Choix d’une destination avec autocomplétion d’adresse en France, avec destinations de démonstration en fallback.
 - Choix du service :
   - `Fleet Standard` : course classique.
   - `FleetHer` : course proposée uniquement aux chauffeurs femmes éligibles.
@@ -35,7 +35,7 @@ Docker Compose local reste disponible pour le développement complet ou pour tra
   - `FleetLuxe` : course premium.
 - Estimation du prix côté backend.
 - Paiement Stripe en mode test ou paiement simulé en mode démo.
-- Suivi de la course et simulation des étapes.
+- Suivi de la course et simulation des étapes avec tracé routier OSRM lorsque le service d’itinéraire est disponible.
 
 ### Chauffeur
 
@@ -130,6 +130,7 @@ Variables présentes dans `mobile/.env` :
 EXPO_PUBLIC_API_URL=http://51.158.102.141/api/v1
 EXPO_PUBLIC_GPS_URL=http://51.158.102.141
 EXPO_PUBLIC_GEOCODING_URL=https://nominatim.openstreetmap.org/search
+EXPO_PUBLIC_OSRM_URL=https://router.project-osrm.org/route/v1/driving
 REACT_NATIVE_PACKAGER_HOSTNAME=192.168.1.20
 EXPO_PUBLIC_USE_SIMULATED_PAYMENT=true
 EXPO_PUBLIC_ENABLE_DEMO_SIMULATION=true
@@ -270,6 +271,7 @@ ipconfig
 EXPO_PUBLIC_API_URL=http://192.168.1.20:8090/api/v1
 EXPO_PUBLIC_GPS_URL=http://192.168.1.20:8090
 EXPO_PUBLIC_GEOCODING_URL=https://nominatim.openstreetmap.org/search
+EXPO_PUBLIC_OSRM_URL=https://router.project-osrm.org/route/v1/driving
 REACT_NATIVE_PACKAGER_HOSTNAME=192.168.1.20
 DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,backend,192.168.1.20
 ```
@@ -513,6 +515,7 @@ Les exemples ont été volontairement simplifiés :
 - `EXPO_PUBLIC_API_URL`
 - `EXPO_PUBLIC_GPS_URL`
 - `EXPO_PUBLIC_GEOCODING_URL`
+- `EXPO_PUBLIC_OSRM_URL`
 - `EXPO_PUBLIC_USE_SIMULATED_PAYMENT`
 - `EXPO_PUBLIC_ENABLE_DEMO_SIMULATION`
 - `EXPO_PUBLIC_DEMO_PASSWORD`

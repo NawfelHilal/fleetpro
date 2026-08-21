@@ -15,7 +15,6 @@ type NominatimResult = {
 };
 
 const defaultGeocodingUrl = 'https://nominatim.openstreetmap.org/search';
-const niceViewbox = '7.15,43.80,7.35,43.60';
 
 export async function searchDestinationSuggestions(query: string, pickup: Coordinate): Promise<PlaceSuggestion[]> {
   const normalizedQuery = query.trim();
@@ -53,12 +52,12 @@ export function roundCoordinate(value: number): number {
 function searchRemoteDestinations(query: string, pickup: Coordinate): Promise<PlaceSuggestion[]> {
   const geocodingUrl = process.env.EXPO_PUBLIC_GEOCODING_URL || defaultGeocodingUrl;
   const url = `${geocodingUrl}?${new URLSearchParams({
-    q: `${query}, Nice, France`,
+    q: query,
     format: 'json',
     addressdetails: '1',
+    countrycodes: 'fr',
+    'accept-language': 'fr',
     limit: '5',
-    bounded: '1',
-    viewbox: niceViewbox,
   }).toString()}`;
 
   return fetch(url, { headers: { Accept: 'application/json' } })

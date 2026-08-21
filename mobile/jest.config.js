@@ -3,6 +3,7 @@ module.exports = {
   testMatch: ['**/*.test.ts'],
   collectCoverageFrom: [
     'src/api/client.ts',
+    'src/api/directions.ts',
     'src/api/geocoding.ts',
     'src/theme/format.ts',
     'src/data/places.ts',

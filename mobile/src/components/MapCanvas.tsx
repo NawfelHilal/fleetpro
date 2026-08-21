@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { Ride } from '../api/client';
+import { getDrivingRoute } from '../api/directions';
 import { demoDriverStart, demoDropoff, demoPickup } from '../data/demoRoute';
 import { colors } from '../theme/colors';
 
@@ -27,8 +28,38 @@ export function MapCanvas({ compact, ride, simulationPhase, driverCoordinate }: 
   const dropoff = parseCoordinate(ride?.dropoff_latitude, ride?.dropoff_longitude) || defaultDropoff;
   const phase = simulationPhase || ride?.status || 'REQUESTED';
   const animation = useMemo(() => getAnimationPath(phase, pickup, dropoff), [phase, pickup.latitude, pickup.longitude, dropoff.latitude, dropoff.longitude]);
+  const [routePath, setRoutePath] = useState<MapCoordinate[]>([pickup, dropoff]);
+  const [animationRoutePath, setAnimationRoutePath] = useState<MapCoordinate[]>([animation.from, animation.to]);
   const [driverPosition, setDriverPosition] = useState(animation.from);
   const [progressPath, setProgressPath] = useState<MapCoordinate[]>([animation.from]);
+
+  useEffect(() => {
+    let canceled = false;
+
+    getDrivingRoute(pickup, dropoff).then((route) => {
+      if (!canceled) {
+        setRoutePath(route);
+      }
+    });
+
+    return () => {
+      canceled = true;
+    };
+  }, [pickup.latitude, pickup.longitude, dropoff.latitude, dropoff.longitude]);
+
+  useEffect(() => {
+    let canceled = false;
+
+    getDrivingRoute(animation.from, animation.to).then((route) => {
+      if (!canceled) {
+        setAnimationRoutePath(route);
+      }
+    });
+
+    return () => {
+      canceled = true;
+    };
+  }, [animation.from.latitude, animation.from.longitude, animation.to.latitude, animation.to.longitude]);
 
   useEffect(() => {
     if (driverCoordinate) {
@@ -48,7 +79,7 @@ export function MapCanvas({ compact, ride, simulationPhase, driverCoordinate }: 
     const timer = setInterval(() => {
       frame += 1;
       const progress = Math.min(frame / totalFrames, 1);
-      const nextPosition = interpolate(animation.from, animation.to, easeInOut(progress));
+      const nextPosition = coordinateAtProgress(animationRoutePath, easeInOut(progress));
       setDriverPosition(nextPosition);
       setProgressPath((path) => [...path.slice(-24), nextPosition]);
 
@@ -58,7 +89,7 @@ export function MapCanvas({ compact, ride, simulationPhase, driverCoordinate }: 
     }, 90);
 
     return () => clearInterval(timer);
-  }, [animation.from.latitude, animation.from.longitude, animation.to.latitude, animation.to.longitude, compact, driverCoordinate?.latitude, driverCoordinate?.longitude, phase]);
+  }, [animation.from.latitude, animation.from.longitude, animation.to.latitude, animation.to.longitude, animationRoutePath, compact, driverCoordinate?.latitude, driverCoordinate?.longitude, phase]);
 
   return (
     <View
@@ -88,8 +119,8 @@ export function MapCanvas({ compact, ride, simulationPhase, driverCoordinate }: 
         <Marker coordinate={driverPosition} anchor={{ x: 0.5, y: 0.5 }}>
           <View style={styles.driverMarker}><Text style={styles.driverMarkerText}>car</Text></View>
         </Marker>
-        <Polyline coordinates={[pickup, dropoff]} strokeColor={colors.surface} strokeWidth={5} />
-        {!driverCoordinate ? <Polyline coordinates={[animation.from, animation.to]} strokeColor={colors.success} strokeWidth={3} lineDashPattern={[6, 6]} /> : null}
+        <Polyline coordinates={routePath} strokeColor={colors.surface} strokeWidth={5} />
+        {!driverCoordinate ? <Polyline coordinates={animationRoutePath} strokeColor={colors.success} strokeWidth={3} lineDashPattern={[6, 6]} /> : null}
         {progressPath.length > 1 ? (
           <Polyline coordinates={progressPath} strokeColor={colors.warning} strokeWidth={5} />
         ) : null}
@@ -121,11 +152,13 @@ function getAnimationPath(phase: Ride['status'], pickup: MapCoordinate, dropoff:
   return { from: driverStart, to: driverStart };
 }
 
-function interpolate(from: MapCoordinate, to: MapCoordinate, progress: number): MapCoordinate {
-  return {
-    latitude: from.latitude + (to.latitude - from.latitude) * progress,
-    longitude: from.longitude + (to.longitude - from.longitude) * progress,
-  };
+function coordinateAtProgress(route: MapCoordinate[], progress: number): MapCoordinate {
+  if (route.length <= 1) {
+    return route[0];
+  }
+
+  const targetIndex = Math.min(Math.round((route.length - 1) * progress), route.length - 1);
+  return route[targetIndex];
 }
 
 function easeInOut(progress: number): number {
