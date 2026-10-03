@@ -1,22 +1,16 @@
 {
   "acceptedAdvisories": {
-    "1138808": {
-      "package": "image-size",
-      "url": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr",
-      "reason": "Transitive dependency used by Expo/Metro tooling. The non-breaking Expo SDK 54 fix is not available; npm proposes Expo 57 as a breaking change.",
-      "reviewBefore": "2026-10-01"
+    "1240912": {
+      "package": "node-forge",
+      "url": "https://github.com/advisories/GHSA-86w9-cpqp-85rv",
+      "reason": "No patched release as of 2026-10-03 (latest: 1.4.0). Used transitively by Expo CLI and its code-signing tooling; no direct application import. Temporary acceptance retains risk when tooling verifies untrusted certificates/signatures. Reassess before enabling update code signing or processing external signing material; replace with an upstream fix when available.",
+      "reviewBefore": "2026-10-17"
     },
-    "1138809": {
-      "package": "image-size",
-      "url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq",
-      "reason": "Transitive dependency used by Expo/Metro tooling. The non-breaking Expo SDK 54 fix is not available; npm proposes Expo 57 as a breaking change.",
-      "reviewBefore": "2026-10-01"
-    },
-    "1130709": {
-      "package": "postcss",
-      "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp",
-      "reason": "Moderate transitive Expo/Metro advisory kept in the allowlist only to explain dependency chains reported by npm audit.",
-      "reviewBefore": "2026-10-01"
+    "1240992": {
+      "package": "braces",
+      "url": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+      "reason": "No patched release as of 2026-10-03 (latest: 3.0.3). Used through micromatch by Metro and Jest tooling; no direct application import. Temporary acceptance assumes repository-controlled glob patterns. Untrusted patterns can exhaust the Node.js stack; reassess if externally supplied patterns reach tooling and replace with an upstream fix when available.",
+      "reviewBefore": "2026-10-17"
     }
   }
 }

@@ -11,7 +11,15 @@ const severityRank = {
 };
 
 const allowlist = JSON.parse(readFileSync(join(__dirname, '..', 'security-audit.allowlist.json'), 'utf8'));
-const acceptedSources = new Set(Object.keys(allowlist.acceptedAdvisories).map(Number));
+const today = new Date().toISOString().slice(0, 10);
+const acceptedSources = new Set();
+for (const [source, advisory] of Object.entries(allowlist.acceptedAdvisories)) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(advisory.reviewBefore || '') || advisory.reviewBefore <= today) {
+    console.error(`Mobile audit exception ${source} (${advisory.package}) needs review: ${advisory.reviewBefore || 'missing reviewBefore'}.`);
+    continue;
+  }
+  acceptedSources.add(Number(source));
+}
 
 const auditCommand = process.platform === 'win32' ? process.env.ComSpec || 'cmd.exe' : 'npm';
 const auditArgs = process.platform === 'win32'
@@ -40,7 +48,15 @@ try {
   process.exit(1);
 }
 
-const vulnerabilities = report.vulnerabilities || {};
+// npm also returns JSON for registry failures. Never treat a failed audit as clean.
+if (audit.error || ![0, 1].includes(audit.status) || !report || report.error ||
+    report.auditReportVersion !== 2 || !report.vulnerabilities ||
+    typeof report.vulnerabilities !== 'object' || Array.isArray(report.vulnerabilities)) {
+  process.stderr.write(audit.stderr || 'npm audit did not return a valid vulnerability report.\n');
+  process.exit(1);
+}
+
+const vulnerabilities = report.vulnerabilities;
 
 function collectSources(name, seen = new Set()) {
   if (seen.has(name)) {
