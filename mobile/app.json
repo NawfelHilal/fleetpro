@@ -36,7 +36,10 @@
           "merchantIdentifier": "",
           "enableGooglePay": false
         }
-      ]
+      ],
+      "expo-asset",
+      "expo-status-bar",
+      "expo-font"
     ],
     "extra": {
       "apiUrl": "http://localhost:8090/api/v1",
